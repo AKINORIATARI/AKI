@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>줄넘기 게임</title>
+    <style>
+        body {
+            background-color: #f0f0f0;
+            margin: 0;
+            padding: 0;
+            overflow: hidden;
+        }
+
+        #game-container {
+            position: relative;
+            width: 800px;
+            height: 600px;
+            margin: auto;
+            border: 2px solid #000;
+            overflow: hidden;
+        }
+
+        #rope {
+            position: absolute;
+            top: -20px; /* 줄이 위에서 시작하도록 변경 */
+            left: 50%;
+            width: 2px;
+            height: 600px; /* 게임 화면의 높이로 변경 */
+            background-color: #000;
+            transform: translateX(-50%);
+        }
+
+        #player {
+            position: absolute;
+            top: 500px;
+            left: 50%;
+            width: 20px;
+            height: 20px;
+            background-color: blue;
+            border-radius: 50%;
+            transform: translateX(-50%);
+        }
+
+        #score {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            font-size: 24px;
+        }
+    </style>
+</head>
+<body>
+<div id="game-container">
+    <div id="rope"></div>
+    <div id="player"></div>
+    <div id="score">Score: 0</div>
+</div>
+<script>
+    const rope = document.getElementById('rope');
+    const player = document.getElementById('player');
+    const scoreDisplay = document.getElementById('score');
+    const gameContainer = document.getElementById('game-container');
+
+    let playerY = 500;
+    let score = 0;
+    let speed = 2;
+    let isJumping = false;
+
+    document.addEventListener('keydown', (e) => {
+        if (e.code === 'Space') { // 스페이스 키로 점프 기능 활성화
+            if (!isJumping) {
+                jump();
+            }
+        }
+    });
+
+    function jump() {
+        isJumping = true;
+        let jumpHeight = 100; // 점프 높이 조절
+        let jumpInterval = setInterval(() => {
+            if (jumpHeight === 0) {
+                clearInterval(jumpInterval);
+                isJumping = false;
+            } else {
+                playerY -= 5; // 점프 속도 조절
+                jumpHeight -= 5;
+                updatePlayerPosition();
+            }
+        }, 10);
+    }
+
+    function updatePlayerPosition() {
+        // 플레이어가 화면 위를 넘어가지 않도록 함
+        if (playerY < 0) playerY = 0;
+        // 플레이어가 게임 화면 아래를 넘어가지 않도록 함
+        if (playerY > gameContainer.clientHeight - player.clientHeight) playerY = gameContainer.clientHeight - player.clientHeight;
+
+        player.style.top = playerY + 'px';
+    }
+
+    function increaseScore() {
+        score++;
+        scoreDisplay.textContent = 'Score: ' + score;
+    }
+
+    function moveRope() {
+        const ropeTop = parseInt(window.getComputedStyle(rope).top);
+        if (ropeTop >= gameContainer.clientHeight) {
+            increaseScore();
+            rope.style.top = '-20px'; // 줄 위치 초기화
+            speed += 0.5; // 속도 증가
+        } else {
+            rope.style.top = (ropeTop + speed) + 'px';
+        }
+    }
+
+    function checkCollision() {
+        const ropeTop = parseInt(window.getComputedStyle(rope).top);
+        const playerTop = parseInt(window.getComputedStyle(player).top);
+        if (ropeTop <= playerTop && ropeTop + 20 >= playerTop) {
+            if (playerY < 100 || playerY > 400) {
+                endGame();
+            }
+        }
+    }
+
+    function endGame() {
+        clearInterval(gameInterval);
+        alert('Game over! Your score: ' + score);
+        location.reload(); // 게임 재시작
+    }
+
+    function startGame() {
+        gameInterval = setInterval(() => {
+            moveRope();
+            checkCollision();
+        }, 10);
+    }
+
+    startGame();
+</script>
+</body>
+</html>
